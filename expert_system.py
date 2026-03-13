@@ -67,16 +67,3 @@ def render_recommendation(prediction_label, top_features, input_data):
         else:
             st.success("👤 **Profil Kuat:** Mahasiswa memiliki rekam jejak yang sangat stabil.")
             st.info("💡 **Saran:** Pertahankan fasilitas dan dukungan kampus untuk mahasiswa ini.")
-
-    # JIKA PREDIKSI: ENROLLED
-    else:
-        st.warning("⚠️ **Peringatan Dini (Area Abu-abu):** Status mahasiswa aktif, namun terdapat indikasi goyah.")
-        
-        if is_tuition_late or is_debtor:
-            st.info("💡 **Saran Finansial:** Mahasiswa terdeteksi mulai menunggak/berutang. Segera klarifikasi kendala pembayaran sebelum mereka menyerah dan putus kuliah.")
-        elif academic_struggle:
-            st.info("💡 **Saran Akademik:** Ada SKS yang tidak lulus atau nilai di bawah standar. Arahkan mahasiswa untuk mengambil kelas Remedial lebih awal.")
-        elif no_scholarship:
-            st.info("💡 **Saran Dukungan:** Mahasiswa bertahan tanpa beasiswa. Informasikan skema bantuan kampus yang bisa mereka lamar semester depan.")
-        else:
-            st.info("💡 **Saran Umum:** Pantau ketat performa di ujian semester berikutnya untuk memastikan nilainya tidak terjun bebas.")
