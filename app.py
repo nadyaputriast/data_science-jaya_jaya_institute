@@ -14,16 +14,16 @@ st.set_page_config(page_title="Jaya Jaya Institute", page_icon="🎓", layout="w
 # 2. FUNGSI LOAD MODEL
 @st.cache_resource
 def load_models():
-    xgb_model = joblib.load('xgb_model.pkl')
+    rf_model = joblib.load('rf_model.pkl')
     scaler = joblib.load('scaler.pkl')
     encoder = joblib.load('encoder.pkl')
-    return xgb_model, scaler, encoder
+    return rf_model, scaler, encoder
 
 model, scaler, encoder = load_models()
 
 # 3. ANTARMUKA PENGGUNA (UI)
 st.title("🎓 Sistem Prediksi Status Mahasiswa")
-st.markdown("Prediksi potensi **Dropout**, **Enrolled (Aktif)**, atau **Graduate (Lulus)** dari data riwayat mahasiswa.")
+st.markdown("Prediksi potensi **Dropout** atau **Graduate (Lulus)** dari data riwayat mahasiswa.")
 
 tab1, tab2 = st.tabs(["📊 Dashboard Analisis Performa", "🔮 Sistem Prediksi Mahasiswa"])
 
@@ -180,7 +180,7 @@ with tab2:
         'GDP':                                         [gdp],
     })
 
-    # Validasi jumlah kolom sebelum prediksi
+    # Validasi & reorder kolom sesuai training
     expected_features = scaler.feature_names_in_ if hasattr(scaler, 'feature_names_in_') else None
     if expected_features is not None:
         missing = set(expected_features) - set(input_data.columns)
@@ -191,17 +191,30 @@ with tab2:
         # Pastikan urutan kolom sama dengan saat training
         input_data = input_data[expected_features]
 
-    # Prediksi XGBoost        
+    # Prediksi Random Forest
     input_scaled = scaler.transform(input_data)
     prediction_encoded = model.predict(input_scaled)
     prediction_label = encoder.inverse_transform(prediction_encoded)[0]
 
-    # XAI (SHAP)
+    # ============================================================
+    # XAI (SHAP) - Random Forest Binary Classification
+    # shap_values shape: (n_samples, n_features, n_classes)
+    # kelas: 0=Dropout, 1=Graduate
+    # ============================================================
     explainer = shap.TreeExplainer(model)
     shap_values = explainer.shap_values(input_scaled)
-    pred_idx = prediction_encoded[0]
 
-    class_shap_values = shap_values[pred_idx][0] if isinstance(shap_values, list) else shap_values[0, :, pred_idx]
+    # Ambil SHAP values untuk kelas yang diprediksi
+    pred_idx = prediction_encoded[0]  # 0=Dropout, 1=Graduate
+
+    # Random Forest TreeExplainer menghasilkan list of arrays [kelas_0, kelas_1]
+    if isinstance(shap_values, list):
+        # shap_values[pred_idx] shape: (1, n_features)
+        class_shap_values = shap_values[pred_idx][0]
+    else:
+        # shap_values shape: (1, n_features, n_classes)
+        class_shap_values = shap_values[0, :, pred_idx]
+
     top_3_indices = np.argsort(np.abs(class_shap_values))[::-1][:3]
     features_list = input_data.columns.tolist()
     top_features = [features_list[idx] for idx in top_3_indices]
