@@ -3,6 +3,7 @@
 - **Nama:** Putu Nadya Putri Astina
 - **Email:** nadyaputriast@gmail.com
 - **ID Dicoding:** nadyaputriast
+- **GitHub Repository:** https://github.com/nadyaputriast/data_science-jaya_jaya_institute
 
 ---
 
